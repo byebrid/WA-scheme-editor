@@ -1,5 +1,0 @@
-Offset,Size,Type,Description
-0,1,ubyte,Ammo. Note: A value of 0A or between 80 and FF will give unlimited ammunition.
-1,1,ubyte,Power 
-2,1,ubyte,Delay. Note: A value between 80 and FF will give the weapon an unlimited delay, "blocking" it. This is useful if one doesn't want a specific super weapon that has 0 ammunitions to appear in crates.
-3,1,ubyte,Crate probability
