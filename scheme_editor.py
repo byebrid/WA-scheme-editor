@@ -8,20 +8,18 @@ import tkinter as tk
 import tkinter.filedialog as filedialog
 from collections import OrderedDict
 from functools import partial
-from binascii import unhexlify
 from PIL import Image, ImageTk
 from math import floor
-from pprint import pprint
 
 from options import OPTIONS, MAIN_MENU_OPTIONS, SPECIAL_MENU_OPTIONS, HIDDEN_OPTIONS
 from weapons import WEAPONS, SUPER_WEAPONS
 
-ROOT_DIR = os.path.dirname(__file__)
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 WORMS_DIR = os.path.dirname(ROOT_DIR)
 DEFAULT_IMG_DIR = os.path.join(WORMS_DIR, 'graphics')
-WEAPONS_IMGS_DIR = os.path.join(os.getcwd(), 'weapons_images')
-# SCHEME_DIR = os.path.join(WORMS_DIR, 'User', 'Schemes')
+WEAPONS_IMGS_DIR = os.path.join(ROOT_DIR, 'weapons_images')
 SCHEME_DIR = os.path.join(ROOT_DIR, 'Schemes')
+# SCHEME_DIR = os.path.join(WORMS_DIR, 'User', 'Schemes')
 
 def load_image(imgpath, imgdir=DEFAULT_IMG_DIR):
     """Loads image in tkinter-friendly format so we can add to buttons, etc.
@@ -747,9 +745,8 @@ class GUI(tk.Frame):
 
         f.close()
 
-
-root = tk.Tk()
-root.title('Worms Armageddon Scheme Editor')
-
-gui = GUI(master=root)
-gui.mainloop()
+if __name__ == '__main__':
+    root = tk.Tk()
+    root.title('Worms Armageddon Scheme Editor')
+    gui = GUI(master=root)
+    gui.mainloop()
