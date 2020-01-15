@@ -1,9 +1,13 @@
-"""classy_scheme_editor.py
+"""
+scheme_editor.py
 
-Attempting to refactor my scheme editor so it's a little easier to work with by
-converting lots of functionality to classes. OOP gone too far?
+Notes
+-----
+...
 """
 import os
+import pathlib
+import sys
 import tkinter as tk
 import tkinter.filedialog as filedialog
 from collections import OrderedDict
@@ -11,40 +15,64 @@ from functools import partial
 from PIL import Image, ImageTk
 from math import floor
 
-from options import OPTIONS, MAIN_MENU_OPTIONS, SPECIAL_MENU_OPTIONS, HIDDEN_OPTIONS
+from options import ALL_OPTIONS, MAIN_MENU_OPTIONS, SPECIAL_MENU_OPTIONS, HIDDEN_OPTIONS
 from weapons import WEAPONS, SUPER_WEAPONS
 
-ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-WORMS_DIR = os.path.dirname(ROOT_DIR)
-DEFAULT_IMG_DIR = os.path.join(WORMS_DIR, 'graphics')
-WEAPONS_IMGS_DIR = os.path.join(ROOT_DIR, 'weapons_images')
-SCHEME_DIR = os.path.join(ROOT_DIR, 'Schemes')
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the pyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app 
+    # path into variable _MEIPASS'.
+    ROOT_DIR = pathlib.Path(sys.executable).parents[1] # Gets out of dist back into actual directory of this script
+else:
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ALL_WEAPONS = OrderedDict({**WEAPONS, **SUPER_WEAPONS})
+
+GRAPHICS_DIR = os.path.join(ROOT_DIR, 'graphics')
+SCHEME_DIR = os.path.join(ROOT_DIR, 'schemes')
 # SCHEME_DIR = os.path.join(WORMS_DIR, 'User', 'Schemes')
 
-def load_image(imgpath, imgdir=DEFAULT_IMG_DIR):
+def load_image(imgpath):
     """Loads image in tkinter-friendly format so we can add to buttons, etc.
     
     Parameters
     ----------
     imgpath: iterable of strings
-        Strings describing the path of the image WITHIN `imgdir`
-    imgdir: path object; defaults to ``DEFAULT_IMG_DIR``
-        Path to the root directory we expect image to be found in.
+        Strings describing the path of the image
+
+    Example
+    -------
+    >>> root = tk.Tk()
+    >>> image = load_image(('Weapons', 'IconBazooka.png'))
+    >>> button = tk.Button(master=root, image=image)
+    >>> button.image = image # Avoid garbage collect
+    >>> button.pack()
     """
-    image = Image.open(os.path.join(imgdir, *imgpath))
+    image = Image.open(os.path.join(GRAPHICS_DIR, *imgpath))
     return ImageTk.PhotoImage(image)
 
 
 class IntVar(tk.IntVar):
-    """Class for dealing with 8 bit values. Can be signed or unsigned.
-    Inherits from tkinter.IntVar so has same properties.
+    """Class for dealing with 8-bit values. Can be signed or unsigned.
+    Inherits from tkinter.IntVar.
+    
+    Gets used in IntOption.
 
     Parameters
     ----------
     value: int
-        int between 0-255. Not the hexadecimal representation.
+        If `signed` == False, this will be constrained to [0,    255]
+        If `signed` == True, this will be constrained to  [-128, 127]
     signed: bool; defaults to False
         Whether this byte is signed or not
+
+    Example
+    -------
+    >>> root = tk.Tk()
+    >>> a = IntVar(value=10, signed=True)
+    >>> a.set(-1000)
+    >>> a.get()
+    -128
     """
     def __init__(self, *, value, signed=False):
         super().__init__()
@@ -55,8 +83,8 @@ class IntVar(tk.IntVar):
     def set(self, value):
         value = int(value)
         if self.signed:
-            if value < -127:
-                value = -127
+            if value < -128:
+                value = -128
             elif value > 127:
                 value = 127
         else:
@@ -66,7 +94,8 @@ class IntVar(tk.IntVar):
                 value = 255
         return self._tk.globalsetvar(self._name, value)
 
-    def get_encoded_value(self):
+    @property
+    def encoded_value(self):
         if self.signed: 
             magnitude = abs(self.get())
             hex_str = '{value:02x}'.format(value=magnitude+128) # Converts to signed value (i.e. between 128-255 in hex)
@@ -81,38 +110,112 @@ class IntVar(tk.IntVar):
             return int.from_bytes(raw_byte, byteorder='little')
 
     def __repr__(self):
-        return f'Byte: {self.get()}'
+        return f'{self.__class__.__name__}(value={self.value.get()}, signed={self.signed})'
+
+
+class Button(tk.Button):
+    """Subclass of tkinter.Button which handles all the image/command-setting.
+    
+    Parameters
+    ----------
+    master: tkinter master
+    option: Option object
+    gui: GUI object
+        The main GUI of the program (the frame for the main menu)
+    """
+    def __init__(self, master, option, gui):
+        super().__init__(master=master)
+        self.option = option # To retrieve new image in self.update_image()
+        self.gui = gui
+
+        self['command'] = option.button_command
+        self.update_image()
+        self.grid(**option.grid_args)
+        
+        self.bind("<Enter>", partial(self.update_help_text, option, False))
+        self.bind("<Leave>", partial(self.update_help_text, option, True))
+
+    def update_help_text(self, option, default=False, event=None):
+        """Callback for when button is hovered onto or off of."""
+        if default == False:
+            self.gui.help_text.set(f"{option.name}: {option.value.get()}")
+        else:
+            self.gui.help_text.set(self.gui.default_help_text)
+
+    def update_image(self):
+        self['image'] = self.option.image
+        self.image = self.option.image # Avoids garbage collect (why tkinter, why?)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(master={self.master}, option={self.option}, gui={self.gui})'
 
 
 class Option():
-    """The base class for all options we can adjust."""
-    def __init__(self, master, option, name):
-        """
-        Parameters
-        ----------
-        master: tk.Tk object or similar
-            The master of this option
-        option: dict
-        """
+    """The base class for all options we can adjust. No option ends up using
+    this directly, only inheriting from it.
+    
+    Parameters
+    ----------
+    master: tkinter master
+        The master of this option
+    name: str
+        The human-friendly name of this option. I.e. 'Dud Mines'. 
+        WARNING: This name must be a key in `ALL_OPTIONS`.
+    """
+    def __init__(self, master, name):        
         self.master = master
-        try:
-            self.grid_args = option['Grid Args']
-        except KeyError: # For Weapon class
-            pass
         self.name = name
 
+    @property
+    def dict(self):
+        for name, value in ALL_OPTIONS.items():
+            if name == self.name:
+                return value
+        raise KeyError(f"Could not find {self.name} 'in options.py'!")
+
+    @property
+    def image(self):
+        try:
+            return self.__image
+        except AttributeError:
+            raise AttributeError(
+                f"Tried to retrieve {self.__class__.__name__}.image but image wasn't found!"
+            )
+        except Exception:
+            raise
+    
+    @image.setter
+    def image(self, imgpath):
+        self.__image = load_image(imgpath)
+
+    @property
+    def images(self):
+        """Used in BoolOption and ChoiceOption"""
+        return self.__images
+
+    @images.setter
+    def images(self, value_to_img_dict):
+        """Converts the imgpaths into usable tkinter images so we don't have
+        to call load_image over and over again."""
+        self.__images = {}
+        for value, imgpath in value_to_img_dict.items():
+            self.__images[value] = load_image(imgpath)
+
+    @property
+    def grid_args(self):
+        return self.dict['Grid Args']
+
     def button_command(self):
-        """Used in StrOption and BoolOption.
+        """Used in ChoiceOption and BoolOption.
         Changes button's image and the Option's value.
         """
         self.cycle_value()
-        new_image = self.get_image()
-        self.button['image'] = new_image
-        self.button.image = new_image
+        self.button.update_image()
+        self.button.update_help_text(option=self)
         self.master.last_change.set(f'{self.name} set to {self.value.get()}')
 
-    def on_value_change(self, *args):
-        pass
+    def __repr__(self):
+        return f'{self.__class__.__name__}(master={self.master}, name={self.name})'
 
 
 class BoolOption(Option):
@@ -120,36 +223,30 @@ class BoolOption(Option):
     
     Parameters
     ----------
-    master: tkinter.Tk() or something similar
-    grid_args: dict of keyword args
-        To be used in tkinter.Button.grid(**grid_args)
-    value: bool
-    images: dict of imgpaths
-        imgpaths should work with load_image()
-
+    master: tkinter master
+    name: str
+        The human-friendly name of this option. I.e. 'Dud Mines'. 
+        WARNING: This name must be a key in `ALL_OPTIONS`.
     """
-    def __init__(self, *, master, option, name):
-        super().__init__(master=master, option=option, name=name)
+    def __init__(self, *, master, name):
+        super().__init__(master=master, name=name)
         
-        value = option['Default']
-        images = option['Images']
-        self.value = tk.BooleanVar(value=value)
-        self.images = images
+        self.value = tk.BooleanVar(value=self.dict['Default'])
+        self.images = self.dict['Images']
 
     def cycle_value(self):
-        self.value.set(not self.value.get()) # Invert
+        self.value.set(not self.value.get()) # False -> True; True -> False
 
-    def get_encoded_value(self):
+    @property
+    def encoded_value(self):
         if self.value.get() == False:
             return b'\x00'
         else:
             return b'\x01'
 
-    def get_image(self):
-        return load_image(self.images[self.value.get()])
-
-    def __repr__(self):
-        return f'BoolOption: {self.value.get()}'
+    @property
+    def image(self):
+        return self.images[self.value.get()]
 
     def decode(self, raw_bytes):
         if raw_bytes == b'\x00':
@@ -160,7 +257,7 @@ class BoolOption(Option):
             raise ValueError(f'{raw_bytes} could not be interpreted as bool!')
 
 
-class StrOption(Option):
+class ChoiceOption(Option):
     """Option that cycles through a small list of possible values, stored as
     strings so I actually remember what they mean. An example would be the
     Sudden Death Event option, which can be either 'Round Ends' (b'\x00'), 
@@ -168,64 +265,44 @@ class StrOption(Option):
 
     Parameters
     ----------
-    master:
-    grid_args:
-    option: dict
-        A copy or reference to option's dict in which this is stored. For
-        example, if this was the StrVar for 'Stockpiling Mode', we would 
-        expect:
-            {
-                'Type': 'str',
-                'Default': 'Replenishing',
-                'Conversions': {
-                    'Replenishing': b'\x00',
-                    'Accumulating': b'\x01',
-                    'Reducing':     b'\x02'
-                },
-                'Images': {
-                    'Replenishing': ('gameoptions', 'Stockpiling', '000001.bmp'),
-                    'Accumulating': ('gameoptions', 'Stockpiling', '000002.bmp'),
-                    'Reducing':     ('gameoptions', 'Stockpiling', '000003.bmp')
-                },
-                'Grid Args': {
-                    'row': 0,
-                    'column': 5
-            }
+    master: tkinter master
+    name: str
+        The human-friendly name of this option. I.e. 'Dud Mines'. 
+        WARNING: This name must be a key in `ALL_OPTIONS`.
     """
-    def __init__(self, *, master, option, name):
-        super().__init__(master=master, option=option, name=name)
+    def __init__(self, *, master, name):
+        super().__init__(master=master, name=name)
 
-        value = option['Default']
-        conversions = option['Conversions']
-        images = option['Images']
-        self.value = tk.StringVar(value=value)
-        self.conversions = conversions
-        self.images = images
+        self.value = tk.Variable(value=self.dict['Default'])
+        self.conversions = self.dict['Conversions']
+        self.images = self.dict['Images']
 
-    def get_image(self):
-        value = self.value.get()
-        return load_image(self.images[value])
-
-    def get_encoded_value(self):
+    @property
+    def encoded_value(self):
         value = self.value.get()
         return self.conversions[value]
-
-    def cycle_value(self):
-        index = self._get_index()
-
-        # Getting next index
-        # Use modulo to wrap around if required (i.e. at end of list)
-        new_index = (index + 1) % len(self.possible_values)
-        new_value = self.possible_values[new_index]
-        self.value.set(new_value)
 
     @property
     def possible_values(self):
         return list(self.conversions.keys())
 
-    def _get_index(self):
+    @property
+    def index(self):
         """Gets index of self within the list of possible values self can take"""
         return self.possible_values.index(self.value.get())
+
+    @property
+    def image(self): # Override Option's .image
+        # print(f"value = {self.value.get()}; images = {self.images}")
+        return self.images[self.value.get()]
+
+    def cycle_value(self):
+        # Getting next index
+        # Use modulo to wrap around if required (i.e. at end of list)
+        new_index = (self.index + 1) % len(self.possible_values)
+        new_value = self.possible_values[new_index]
+        self.value.set(new_value)
+        # self.button.update_image()
 
     def decode(self, raw_byte):
         """Can't be class method because StrVars vary too much in `conversion`, etc."""
@@ -239,35 +316,24 @@ class IntOption(Option):
 
     Parameters
     ----------
-    master: tkinter.Tk() or something similar
-    grid_args: dict of keyword args
-        To be used in tkinter.Button.grid(**grid_args) 
-    value: int
-    image: imgpath
-        imgpath should work with load_image()
+    master: tkinter master
+    name: str
+        The human-friendly name of this option. I.e. 'Dud Mines'. 
+        WARNING: This name must be a key in `ALL_OPTIONS`.
     signed: bool; Default=False
         Whether byte is signed or unsigned
     """
-    def __init__(self, *, master, option, name, signed=False):
-        super().__init__(master=master, option=option, name=name)
+    def __init__(self, *, master, name, signed=False):
+        super().__init__(master=master, name=name)
         
-        value = option['Default']
-        self.value = IntVar(value=value, signed=signed)
-        self.image = option['Image']
+        self.value = IntVar(value=self.dict['Default'], signed=signed)
+        self.image = self.dict['Image']
         self.popup_text = tk.StringVar()
-        self.popup_text.set(option.get('Popup Text', ''))
+        self.popup_text.set(self.dict.get('Popup Text', ''))
 
-    def get_image(self):
-        return load_image(self.image)
-
-    def get_encoded_value(self):
-        """Returns the raw bytes (as hex representation) to be written to the
-        scheme file, taking into account whether it's a signed byte or not.
-        """
-        return self.value.get_encoded_value()
-
-    def decode(self, raw_byte):
-        return self.value.decode(raw_byte=raw_byte)
+    @property
+    def encoded_value(self):
+        return self.value.encoded_value
 
     def button_command(self, *args): # Override default button_command set in Option cls
         def destroy(popup, *args):
@@ -290,7 +356,7 @@ class IntOption(Option):
             # Brief little help text to display above entry
             tk.Label(master=popup, textvariable=self.popup_text).grid(row=0)
 
-            # Entry to change value
+            # Entry to change value and setting focus on the entry box
             popup.entry = tk.Entry(master=popup, textvariable=self.value)
             popup.entry.grid(row=1)
             popup.entry.focus_set()
@@ -302,76 +368,91 @@ class IntOption(Option):
             popup.bind("<Return>", partial(destroy, popup))
             popup.bind("<Escape>", partial(destroy, popup))
 
+    def decode(self, raw_byte):
+        return self.value.decode(raw_byte=raw_byte)
+
     def __repr__(self):
-        return f'IntOption: {self.value.get()}'
+        return f'{self.__class__.__name__}(master={self.master}, name={self.name}, signed={self.value.signed})'
 
 
 class NoneOption(Option):
     """Class for dealing with options we shouldn't change, like the magic bytes
-    at start of file."""
-    def __init__(self, *, master, option, name):
-        super().__init__(master=master, option=option, name=name)
+    at start of file.
+    
+    Parameters
+    ----------
+    master: tkinter master
+    name: str
+        The human-friendly name of this option. I.e. 'Dud Mines'. 
+        WARNING: This name must be a key in `ALL_OPTIONS`.
+    """
+    def __init__(self, *, master, name):
+        super().__init__(master=master, name=name)
         
-        value = option['Default'] # Should be in bytes already
-        self.value = value
+        self.value = tk.Variable(value=self.dict['Default']) # Should be in bytes already
 
-    def get_encoded_value(self):
-        return self.value
+    @property
+    def encoded_value(self):
+        return self.value.get()
 
     def decode(self, value):
         """Doesn't actually need to decode since this value never changes"""
-        return self.value
+        return self.value.get()
 
 
 class Weapon(Option):   
     """
     Parameters
     ----------
-    master:
-    option: dict
+    master: tkinter master
     name: str
-    is_super: bool
+        The human-friendly name of this weapon. I.e. 'Bazooka'. 
+        WARNING: This name must be a key in `ALL_WEAPONS`.
     """ 
-    def __init__(self, master, option, name, is_super=False):
-        super().__init__(master=master, option=option, name=name)
-
+    def __init__(self, master, name):
+        super().__init__(master=master, name=name)
+        self.image = self.dict['Image']
+    
         # Written in order as they appear in scheme file
-        self.ammo = IntVar(value=option['Ammo']) # 10 or 128-255 means infinite ammo
-        self.power = IntVar(value=option['Power'])
-        self.delay = IntVar(value=option['Delay']) # 128-255 means it's 'blocked'
-        self.crate_probability = IntVar(value=option['Crate Probability'])
-        
-        self.image = option['Image']
-        self.is_super = is_super
+        self.ammo = IntVar(value=self.dict['Ammo'])
+        self.power = IntVar(value=self.dict['Power'])
+        self.delay = IntVar(value=self.dict['Delay'])
+        self.crate_probability = IntVar(value=self.dict['Crate Probability'])
 
-        # dummy variable really
-        self.value = tk.BooleanVar()
+    # Overrided Option class' self.dict
+    @property
+    def dict(self):
+        for name, value in ALL_WEAPONS.items():
+            if name == self.name:
+                return value
+        raise KeyError(f"Did not find {self.name} in 'weapons.py'!")
 
-    def __repr__(self):
-        return {self.name}
+    @property
+    def is_super(self):
+        return self.name in SUPER_WEAPONS
+
+    @property
+    def value(self):
+        value_text = (
+            f'\nAmmo: {self.ammo.get()}, Power: {self.power.get()}, Delay: '
+            f'{self.delay.get()}, Crate probability: {self.crate_probability.get()}'
+        )
+        return tk.StringVar(value=value_text)
 
     @property
     def grid_args(self):
         # Getting index of weapon in weapons lists
-        if self.is_super:
-            weapons = SUPER_WEAPONS.items()
-        else:
-            weapons = WEAPONS.items()
-        names = [w[0] for w in weapons]
+        names = [w for w in ALL_WEAPONS.keys()]
+        # print(f'names=\n{names}')
         index = names.index(self.name)
 
-        if self.is_super:
-            index += 45
-        # Converting index to grid_args
         return {'row': floor(index / 8), 'column': index % 8}
 
-    def get_image(self):
-        return load_image(self.image, imgdir=WEAPONS_IMGS_DIR)
-
-    def get_encoded_value(self):
+    @property
+    def encoded_value(self):
         encoded_values = b''
         for thing in (self.ammo, self.power, self.delay, self.crate_probability):
-            encoded_values += thing.get_encoded_value()
+            encoded_values += thing.encoded_value
 
         return encoded_values
 
@@ -385,7 +466,7 @@ class Weapon(Option):
             self.delay.set(self.delay.get())
             self.crate_probability.set(self.crate_probability.get())
 
-            # self.master.last_change.set(f'{self.name} set to {self.value.get()}')
+            self.master.last_change.set(f'{self.name} updated!')
 
         try:
             destroy(self.master.weapon_popup)
@@ -399,8 +480,9 @@ class Weapon(Option):
             weapon_popup.name = self.name
 
             # Brief little help text to display above entry
-            text = ("If ammo is set to 10 or 128-255, you'll get unlimited ammo.\n"
-                    "If delay is set to 128-255, weapon will never appear in crates."
+            text = (
+                "If ammo is set to 10 or 128-255, you'll get unlimited ammo.\n"
+                "If delay is set to 128-255, weapon will never appear in crates."
             )
             tk.Label(master=weapon_popup, text=text).grid(row=0, columnspan=2)
 
@@ -431,44 +513,48 @@ class Weapon(Option):
 
 class GUI(tk.Frame):
     def __init__(self, master):
-        super().__init__(master)
+        super().__init__(master=master)
         self.master = master
-        self.pack()
+        self.default_help_text = "Welcome to Lex's Worms Armageddon Scheme Editor!"
 
-        # Using OrdererDicts since we need to know this order when saving scheme
-        self.all_options = OrderedDict() # inneficient to have copies but easier to manage
-        self.main_menu_options = OrderedDict()
-        self.special_menu_options = OrderedDict()
-        self.hidden_options = OrderedDict()
-        self.weapons = OrderedDict()
-        self.super_weapons = OrderedDict()
+        self.pack()
 
         self.init_all_options()
 
         self.create_widgets()
 
-    def __repr__(self):
-        return "MAIN GUI OBJECT"
+    @property
+    def all_weapons(self):
+        if self.main_menu_options['Super Weapons'].value.get() == True:
+            return OrderedDict({**self.weapons, **self.super_weapons})
+        else:
+            return self.weapons
 
     def create_widgets(self):
         self.create_main_menu()
 
+        def create_menu_button(imgpath, command, grid_args):
+            image = load_image(imgpath)
+            button = tk.Button(master=self, image=image)
+            button.image = image # Avoid garbage collect
+            button['command'] = command
+            button.grid(**grid_args)
+
         # Button to access weapons_menu
-        weapons_menu_image = load_image(('optionsmenu', 'weaponoptions.bmp'))
-        weapons_menu_btn = tk.Button(master=self, image=weapons_menu_image)
-        weapons_menu_btn.image = weapons_menu_image # Avoid garbage collect
-        weapons_menu_btn['command'] = self.create_weapons_menu
-        weapons_menu_btn.grid(row=2, column=4, columnspan=2)
+        create_menu_button(
+            imgpath=('optionsmenu', 'weaponoptions.bmp'),
+            command=self.create_weapons_menu,
+            grid_args={'row': 2, 'column': 4, 'columnspan': 2}
+        )
 
         # Button to access special stuff
-        special_menu_image = load_image(('Custom', 'secretstar.bmp'))
-        special_menu_btn = tk.Button(master=self, image=special_menu_image)
-        special_menu_btn.image = special_menu_image # Avoid garbage collect
-        special_menu_btn['command'] = self.create_special_menu
-        special_menu_btn.grid(row=2, column=6)
+        create_menu_button(
+            imgpath=('Custom', 'secretstar.bmp'),
+            command=self.create_special_menu,
+            grid_args={'row': 2, 'column': 6}
+        )
 
         # To display help text
-        self.default_help_text = "Welcome to Lex's Worms Armageddon Scheme Editor!"
         self.help_text = tk.StringVar()
         self.help_text.set(self.default_help_text)
         tk.Label(master=self, textvariable=self.help_text, wraplength=200,
@@ -492,7 +578,15 @@ class GUI(tk.Frame):
             command=self.save_scheme).grid(row=4,column=6)
 
     def init_all_options(self):
-        for name, option in OPTIONS.items():
+        # Using OrdererDicts since we need to know this order when saving scheme
+        self.all_options = OrderedDict() # inneficient to have copies but easier to manage
+        self.main_menu_options = OrderedDict()
+        self.special_menu_options = OrderedDict()
+        self.hidden_options = OrderedDict()
+        self.weapons = OrderedDict()
+        self.super_weapons = OrderedDict()
+
+        for name, option_dict in ALL_OPTIONS.items():
             # Figuring out which dict to store this option in
             if name in MAIN_MENU_OPTIONS:
                 d = self.main_menu_options
@@ -501,72 +595,44 @@ class GUI(tk.Frame):
             elif name in HIDDEN_OPTIONS:
                 d = self.hidden_options
             
-            # Ignoring option['Type'] == None since we can't change those options
-            if option['Type'] == 'bool':
-                option_obj = BoolOption(master=self, name=name, option=option)
-            elif option['Type'] == 'str':
-                option_obj = StrOption(master=self, name=name, option=option)
-            elif option['Type'] in ('ubyte', 'byte', 'sbyte'):
-                if option['Type'] == 'sbyte':
+            # Determining what kind of Option this should be
+            if option_dict['Type'] == 'bool':
+                option = BoolOption(master=self, name=name)
+            elif option_dict['Type'] == 'choice':
+                option = ChoiceOption(master=self, name=name)
+            elif option_dict['Type'] == None:
+                option = NoneOption(master=self, name=name)
+            elif option_dict['Type'] in ('ubyte', 'byte', 'sbyte'):
+                if option_dict['Type'] == 'sbyte':
                     signed = True
                 else:
                     signed = False
-                option_obj = IntOption(master=self, name=name, 
-                    option=option, signed=signed
-                )
-            elif option['Type'] == None:
-                option_obj = NoneOption(master=self, name=name, option=option)
+                option = IntOption(master=self, name=name, signed=signed)
+            
+            d[name] = option
+            self.all_options[name] = option # Adding them in order
 
-            d[name] = option_obj
-            self.all_options[name] = option_obj
-
-        for name, weapon in WEAPONS.items():
-            self.weapons[name] = Weapon(master=self, name=name, option=weapon)
-
-        for name, weapon in SUPER_WEAPONS.items():
-            self.super_weapons[name] = Weapon(master=self, name=name, option=weapon, is_super=True)
+        for name, weapon in ALL_WEAPONS.items():
+            if name in SUPER_WEAPONS:
+                d = self.super_weapons
+            else:
+                d = self.weapons
+            d[name] = Weapon(master=self, name=name)
 
     def create_main_menu(self):
         for name, option in self.main_menu_options.items():
             if type(option) == NoneOption:
                 continue
 
-            button = tk.Button(master=self)
+            button = Button(master=self, option=option, gui=self)
             option.button = button # Keep reference to button
 
-            image = option.get_image()
-            button['image'] = image
-            button.image = image # To avoid garbage collect
-
-            value = option.value.get()
-            button['textvariable'] = value
-
-            button['command'] = option.button_command
-
-            def set_help_text(option, default=False, event=None):
-                """Callback for when button is hovered onto or off of."""
-                if default == False:
-                    self.help_text.set(f"{option.name}: {option.value.get()}")
-                else:
-                    self.help_text.set(self.default_help_text)
-            button.bind("<Enter>", partial(set_help_text, option, False))
-            button.bind("<Leave>", partial(set_help_text, option, True))
-
-            button.grid(**option.grid_args)
-
-    def create_popup_menu(self, menu_options, popup_name, popup_title, graphics_dir=DEFAULT_IMG_DIR):
+    def create_popup_menu(self, menu_options, popup_name, popup_title):
         def destroy(popup_menu, popup_name, *args):
             popup_menu.destroy()
             delattr(self, popup_name)
             # self.value.set(self.value.get()) # To ensure int is restricted to 0-255  or -127-127
             # self.master.last_change.set(f'{self.name} set to {self.value.get()}')
-
-        def set_help_text(option, default=False, event=None):
-            """Callback for when button is hovered onto or off of."""
-            if default == False:
-                self.help_text.set(f"{option.name}: {option.value.get()}")
-            else:
-                self.help_text.set(self.default_help_text)
         
         try:
             getattr(self, popup_name).focus_set() # if popup already open
@@ -579,108 +645,14 @@ class GUI(tk.Frame):
             popup_menu.bind("<Escape>", partial(destroy, popup_menu, popup_name))
 
             for name, option in menu_options.items():
-                button = tk.Button(master=popup_menu)
+                button = Button(master=popup_menu, option=option, gui=self)
                 option.button = button # Keep reference to button
-
-                image = option.get_image()
-                button['image'] = image
-                button.image = image # To avoid garbage collect
-
-                value = option.value.get()
-                button['textvariable'] = value
-
-                button['command'] = option.button_command
-                
-                button.bind("<Enter>", partial(set_help_text, option, False))
-                button.bind("<Leave>", partial(set_help_text, option, True))
-
-                button.grid(**option.grid_args)
 
     def create_special_menu(self):
         self.create_popup_menu(menu_options=self.special_menu_options, popup_name='special_menu', popup_title='Special things')
 
     def create_weapons_menu(self):
-        if self.main_menu_options['Super Weapons'].value.get() == 'True':
-            weapons = {**self.weapons, **self.super_weapons}
-        else:
-            weapons = self.weapons
-
-        self.create_popup_menu(menu_options=weapons, popup_name='weapons_menu', popup_title='Weapons')
-
-    # def create_special_menu(self):
-    #     def destroy(popup_menu, *args):
-    #         popup_menu.destroy()
-    #         delattr(self, 'weapons_menu')
-    #         self.master.last_change.set(f'{self.name} set to {self.value.get()}')
-
-    #     try:
-    #         self.special_menu.focus_set()
-    #     except:
-    #         special_menu = tk.Toplevel(master=self)
-    #         self.special_menu = special_menu
-            
-    #         special_menu.title('Special things')
-
-    #         for name, option in self.special_menu_options.items():
-    #             button = tk.Button(master=special_menu)
-    #             option.button = button # Keep reference to button
-
-    #             image = load_image(*option.get_image())
-    #             button['image'] = image
-    #             button.image = image # To avoid garbage collect
-
-    #             value = option.value.get()
-    #             button['textvariable'] = value
-
-    #             button['command'] = option.button_command
-
-    #             def set_help_text(option, default=False, event=None):
-    #                 """Callback for when button is hovered onto or off of."""
-    #                 if default == False:
-    #                     self.help_text.set(f"{option.name}: {option.value.get()}")
-    #                 else:
-    #                     self.help_text.set(self.default_help_text)
-    #             button.bind("<Enter>", partial(set_help_text, option, False))
-    #             button.bind("<Leave>", partial(set_help_text, option, True))
-
-    #             button.grid(**option.grid_args)
-
-    # def create_weapons_menu(self):
-    #     def destroy(weapons_menu, *args):
-    #         weapons_menu.destroy()
-    #         delattr(self, 'weapons_menu')
-    #         # self.value.set(self.value.get()) # To ensure int is restricted to 0-255  or -127-127
-    #         # self.master.last_change.set(f'{self.name} set to {self.value.get()}')
-
-    #     try:
-    #         self.weapons_menu.focus_set()
-    #     except (tk.TclError, AttributeError) as e:
-    #         weapons_menu = tk.Toplevel(master=self) # Maybe change master to main menu?
-    #         self.weapons_menu = weapons_menu
-    #         weapons_menu.title('Weapons')
-    #         weapons_menu.bind("<Return>", partial(destroy, weapons_menu))
-    #         weapons_menu.bind("<Escape>", partial(destroy, weapons_menu))
-
-    #         if self.main_menu_options['Super Weapons'].value.get() == True:
-    #             weapons_dict = {**self.weapons, **self.super_weapons} 
-    #         else:
-    #             weapons_dict = self.weapons
-
-    #         for i, (name, option) in enumerate(weapons_dict.items()):
-    #             button = tk.Button(master=weapons_menu)
-                
-    #             # Setting button's image
-    #             image = load_image(option.image, imgdir=WEAPONS_IMGS_DIR)
-    #             button['image'] = image
-    #             button.image = image # To avoid garbage collect
-
-    #             # Setting button's command
-    #             button['command'] = option.button_command
-
-    #             # Positioning button
-    #             row = floor(i / 8)
-    #             column = i % 8
-    #             button.grid(row=row, column=column)
+        self.create_popup_menu(menu_options=self.all_weapons, popup_name='weapons_menu', popup_title='Weapons')
         
     def save_scheme(self, *args):
         """For the love of God DO NOT TOUCH!"""
@@ -691,20 +663,15 @@ class GUI(tk.Frame):
             return
 
         for name, option in self.all_options.items():
-            value = option.get_encoded_value()
+            value = option.encoded_value
             print(f'{name} = {value}')
             f.write(value)
 
-        # Seeing if we should write super weapons to file too
-        if self.main_menu_options['Super Weapons'].value.get() == 'True':
-            weapons = {**self.weapons, **self.super_weapons}
-        else:
-            weapons = self.weapons
-
-        for name, option in weapons.items():
-            value = option.get_encoded_value()
+        for name, option in self.all_weapons.items():
+            value = option.encoded_value
             print(f'{name} = {value}')
             f.write(value)
+
         f.close()    
 
     def load_scheme(self):
@@ -714,7 +681,7 @@ class GUI(tk.Frame):
             return
 
         for name, option in self.all_options.items():
-            expected_len = len(option.get_encoded_value())
+            expected_len = len(option.encoded_value)
             raw_bytes = f.read(expected_len)
 
             # Don't try to decode or change NoneOptions, but we have read required bytes
@@ -724,19 +691,11 @@ class GUI(tk.Frame):
             new_value = option.decode(raw_bytes)
             option.value.set(new_value)
             if hasattr(option, 'button'):
-                new_image = option.get_image()
-                option.button['image'] = new_image
-                option.button.image = new_image
+                option.button.update_image()
 
-        # Determining if scheme has super weapons or not
-        f.seek(0, 2) # Goes to end of file
-        if f.tell() == 297: # has super weapons
-            weapons = {**self.weapons, **self.super_weapons}
-        elif f.tell() == 221: # does not have super weapons
-            weapons = self.weapons
-
-        f.seek(41) # Go back to start of weapons data
-        for name, option in weapons.items():
+        # Since 'Super Weapons' option should already be set from above
+        # Note: all_weapons will include super weapons if it's meant to
+        for name, option in self.all_weapons.items():
             # We know weapons are 4 bytes
             for key in ['ammo', 'power', 'delay', 'crate_probability']:
                 raw_byte = f.read(1)
@@ -744,6 +703,10 @@ class GUI(tk.Frame):
                 getattr(option, key).set(new_value)
 
         f.close()
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(master={self.master})'
+
 
 if __name__ == '__main__':
     root = tk.Tk()

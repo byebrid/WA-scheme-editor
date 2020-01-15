@@ -6,315 +6,315 @@ WEAPONS = {
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('IconBazooka.png',)
+        'Image': ('Weapons', 'IconBazooka.png')
     },
     "Homing Missile": {
         'Ammo': 2,
         'Crate Probability': 3,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Homissileicon.png',)
+        'Image': ('Weapons', 'Homissileicon.png')
     },
     "Mortar": {
         'Ammo': 5,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Mortaricon.png',)
+        'Image': ('Weapons', 'Mortaricon.png')
     },
     "Grenade": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('IconGrenade.png',)
+        'Image': ('Weapons', 'IconGrenade.png')
     },
     "Cluster Bomb": {
         'Ammo': 5,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Clusterbombicon.png',)
+        'Image': ('Weapons', 'Clusterbombicon.png')
     },
     "Skunk": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Skunkicon.png',)
+        'Image': ('Weapons', 'Skunkicon.png')
     },
     "Petrol Bomb": {
         'Ammo': 2,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Petrolbombicon.png',)
+        'Image': ('Weapons', 'Petrolbombicon.png')
     },
     "Banana Bomb": {
         'Ammo': 0,
         'Crate Probability': 3,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Bananaicon.png',)
+        'Image': ('Weapons', 'Bananaicon.png')
     },
     "Handgun": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Handgunicon.png',)
+        'Image': ('Weapons', 'Handgunicon.png')
     },
     "Shotgun": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Shotgunicon.png',)
+        'Image': ('Weapons', 'Shotgunicon.png')
     },
     "Uzi": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Uziicon.png',)
+        'Image': ('Weapons', 'Uziicon.png')
     },
     "Minigun": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Minigunicon.png',)
+        'Image': ('Weapons', 'Minigunicon.png')
     },
     "Longbow": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Longbowicon.png',)
+        'Image': ('Weapons', 'Longbowicon.png')
     },
     "Airstrike": {
         'Ammo': 1,
         'Crate Probability': 2,
         'Delay': 3,
         'Power': 2,
-        'Image': ('Airstrikeicon.png',)
+        'Image': ('Weapons', 'Airstrikeicon.png')
     },
     "Napalm Strike": {
         'Ammo': 1,
         'Crate Probability': 2,
         'Delay': 5,
         'Power': 2,
-        'Image': ('Napalmstrikeicon.png',)
+        'Image': ('Weapons', 'Napalmstrikeicon.png')
     },
     "Mine": {
         'Ammo': 2,
         'Crate Probability': 2,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Mineicon.png',)
+        'Image': ('Weapons', 'Mineicon.png')
     },
     "Fire Punch": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Firepunchicon.png',)
+        'Image': ('Weapons', 'Firepunchicon.png')
     },
     "Dragon Ball": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Dragonballicon.png',)
+        'Image': ('Weapons', 'Dragonballicon.png')
     },
     "Kamikaze": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Kamikazeicon.png',)
+        'Image': ('Weapons', 'Kamikazeicon.png')
     },
     "Prod": {
         'Ammo': 10,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Prodicon.png',)
+        'Image': ('Weapons', 'Prodicon.png')
     },
     "Battle Axe": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Battleaxeicon.png',)
+        'Image': ('Weapons', 'Battleaxeicon.png')
     },
     "Blowtorch": {
         'Ammo': 5,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Blowtorchicon.png',)
+        'Image': ('Weapons', 'Blowtorchicon.png')
     },
     "Pneumatic Drill": {
         'Ammo': 3,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Drillicon.png',)
+        'Image': ('Weapons', 'Drillicon.png')
     },
     "Girder": {
         'Ammo': 3,
         'Crate Probability': 2,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Girdericon.png',)
+        'Image': ('Weapons', 'Girdericon.png')
     },
     "Ninja Rope": {
         'Ammo': 5,
         'Crate Probability': 2,
         'Delay': 0,
         'Power': 4,
-        'Image': ('Ninjaropeicon.png',)
+        'Image': ('Weapons', 'Ninjaropeicon.png')
     },
     "Parachute": {
         'Ammo': 2,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Parachuteicon.png',)
+        'Image': ('Weapons', 'Parachuteicon.png')
     },
     "Bungee": {
         'Ammo': 2,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Bungeeicon.png',)
+        'Image': ('Weapons', 'Bungeeicon.png')
     },
     "Teleport": {
         'Ammo': 2,
         'Crate Probability': 2,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Teleporticon.png',)
+        'Image': ('Weapons', 'Teleporticon.png')
     },
     "Dynamite": {
         'Ammo': 1,
         'Crate Probability': 3,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Dynamiteicon.png',)
+        'Image': ('Weapons', 'Dynamiteicon.png')
     },
     "Sheep": {
         'Ammo': 1,
         'Crate Probability': 3,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Sheepicon.png',)
+        'Image': ('Weapons', 'Sheepicon.png')
     },
     "Baseball Bat": {
         'Ammo': 3,
         'Crate Probability': 1,
         'Delay': 0,
         'Power': 2,
-        'Image': ('Baseballbaticon.png',)
+        'Image': ('Weapons', 'Baseballbaticon.png')
     },
     "Flame Thrower": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Flamethrowericon.png',)
+        'Image': ('Weapons', 'Flamethrowericon.png')
     },
     "Homing Pigeon": {
         'Ammo': 0,
         'Crate Probability': 2,
         'Delay':1,
         'Power': 2,
-        'Image': ('Pigeonicon.png',)
+        'Image': ('Weapons', 'Pigeonicon.png')
     },
     "Mad Cow": {
         'Ammo': 0,
         'Crate Probability': 2,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Madcowicon.png',)
+        'Image': ('Weapons', 'Madcowicon.png')
     },
     "Holy Hand Grenade": {
         'Ammo': 0,
         'Crate Probability': 2,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Holygrenadeicon.png',)
+        'Image': ('Weapons', 'Holygrenadeicon.png')
     },
     "Old Woman": {
         'Ammo': 0,
         'Crate Probability': 2,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Oldwomanicon.png',)
+        'Image': ('Weapons', 'Oldwomanicon.png')
     },
     "Sheep Launcher": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Sheeplaunchicon.png',)
+        'Image': ('Weapons', 'Sheeplaunchicon.png')
     },
     "Super Sheep": {
         'Ammo': 0,
         'Crate Probability': 2,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Supersheepicon.png',)
+        'Image': ('Weapons', 'Supersheepicon.png')
     },
     "Mole Bomb": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 1,
         'Power': 2,
-        'Image': ('Molebombicon.png',)
+        'Image': ('Weapons', 'Molebombicon.png')
     },
     "Jet Pack": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Jetpackicon.png',)
+        'Image': ('Weapons', 'Jetpackicon.png')
     },
     "Low Gravity": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('IconLowGravity.png',)
+        'Image': ('Weapons', 'IconLowGravity.png')
     },
     "Laser Sight": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Lasersighticon.png',)
+        'Image': ('Weapons', 'Lasersighticon.png')
     },
     "Fast Walk": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Fastwalkicon.png',)
+        'Image': ('Weapons', 'Fastwalkicon.png')
     },
     "Invisibility": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Invisibleicon.png',)
+        'Image': ('Weapons', 'Invisibleicon.png')
     },
     "Damage x2": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Damagex2icon.png',)
+        'Image': ('Weapons', 'Damagex2icon.png')
     }
 }
 
@@ -324,132 +324,132 @@ SUPER_WEAPONS = {
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Freezeicon.png',)
+        'Image': ('Weapons', 'Freezeicon.png')
     },
     "Super Banana Bomb": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Superbananaicon.png',)
+        'Image': ('Weapons', 'Superbananaicon.png')
     },
     "Mine Strike": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Minestrikeicon.png',)
+        'Image': ('Weapons', 'Minestrikeicon.png')
     },
     "Girder Starter Pack": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Girderpackicon.png',)
+        'Image': ('Weapons', 'Girderpackicon.png')
     },
     "Earthquake": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Quakeicon.png',)
+        'Image': ('Weapons', 'Quakeicon.png')
     },
     "Scales Of Justice": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('IconScalesOfJustice.png',)
+        'Image': ('Weapons', 'IconScalesOfJustice.png')
     },
     "Ming Vase": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Mingvaseicon.png',)
+        'Image': ('Weapons', 'Mingvaseicon.png')
     },
     "Mike's Carpet Bomb": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Carpetbombicon.png',)
+        'Image': ('Weapons', 'Carpetbombicon.png')
     },
     "Patsy's Magic Bullet": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Magicbulleticon.png',)
+        'Image': ('Weapons', 'Magicbulleticon.png')
     },
     "Indian Nuclear Test": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Nuclearbombicon.png',)
+        'Image': ('Weapons', 'Nuclearbombicon.png')
     },
     "Select Worm": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Selectwormicon.png',)
+        'Image': ('Weapons', 'Selectwormicon.png')
     },
     "Salvation Army": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Sallyarmyicon.png',)
+        'Image': ('Weapons', 'Sallyarmyicon.png')
     },
     "Mole Squadron": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Molesquadronicon.png',)
+        'Image': ('Weapons', 'Molesquadronicon.png')
     },
     "MB Bomb": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Mbbombicon.png',)
+        'Image': ('Weapons', 'Mbbombicon.png')
     },
     "Concrete Donkey": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Donkeyicon.png',)
+        'Image': ('Weapons', 'Donkeyicon.png')
     },
     "Suicide Bomber": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Suicidebombicon.png',)
+        'Image': ('Weapons', 'Suicidebombicon.png')
     },
     "Sheep Strike": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Sheepstrikeicon.png',)
+        'Image': ('Weapons', 'Sheepstrikeicon.png')
     },
     "Mail Strike": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Mailstrikeicon.png',)
+        'Image': ('Weapons', 'Mailstrikeicon.png')
     },
     "Armageddon": {
         'Ammo': 0,
         'Crate Probability': 0,
         'Delay': 0,
         'Power': 0,
-        'Image': ('Armageddonicon.png',)
+        'Image': ('Weapons', 'Armageddonicon.png')
     }
 }

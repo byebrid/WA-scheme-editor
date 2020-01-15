@@ -7,21 +7,21 @@ See https://worms2d.info/Game_scheme_file for more info.
 """
 from collections import OrderedDict
 
-OPTIONS = OrderedDict({
+ALL_OPTIONS = OrderedDict({
     'Signature': {
         'Type': None, # To signify user has no control over this
         'Default': b'SCHM'
     },
     'Super Weapons': { #Actually represents version but equivalent to allowing super weapons
-        'Type': 'str',
-        'Default': 'False',
+        'Type': 'choice',
+        'Default': False,
         'Conversions': {
-            'False': b'\x01',
-            'True':  b'\x02'
+            False: b'\x01',
+            True:  b'\x02'
         },
         'Images': {
-            'False': ('Custom', 'superwepno.bmp'),
-            'True':  ('Custom', 'superwepyes.bmp')
+            False: ('Custom', 'superwepno.bmp'),
+            True:  ('Custom', 'superwepyes.bmp')
         },
         'Grid Args': {
             'row': 2,
@@ -85,7 +85,7 @@ OPTIONS = OrderedDict({
     'Fall Damage': {
         'Type': 'byte',
         'Default': 1,
-        'Image': ('Custom', 'worm_falling.jpg'),
+        'Image': ('gameoptions', 'falldamageON.bmp'),
         'Grid Args': {
             'row': 2,
             'column': 2
@@ -109,7 +109,7 @@ OPTIONS = OrderedDict({
         'Default': b'\x17'
     },
     'Stockpiling Mode': {
-        'Type': 'str',
+        'Type': 'choice',
         'Default': 'Replenishing',
         'Conversions': {
             'Replenishing': b'\x00',
@@ -127,7 +127,7 @@ OPTIONS = OrderedDict({
         }
     },
     'Worm Select': {
-        'Type': 'str',
+        'Type': 'choice',
         'Default': 'Ordered',
         'Conversions': {
             'Ordered':  b'\x00',
@@ -145,7 +145,7 @@ OPTIONS = OrderedDict({
         }
     },
     'Sudden Death Event': {
-        'Type': 'str',
+        'Type': 'choice',
         'Default': 'HP drops to 1',
         'Conversions': {
             'Round Ends':       b'\x00',
@@ -259,7 +259,7 @@ OPTIONS = OrderedDict({
         }
     },
     'Worm Placement': {
-        'Type': 'str',
+        'Type': 'choice',
         'Default': 'Automatic',
         'Conversions': {
             'Automatic': b'\x00',
@@ -277,7 +277,7 @@ OPTIONS = OrderedDict({
     'Initial Worm Energy': {
         'Type': 'ubyte',
         'Default': 100,
-        'Image': ('gameoptions', 'WormEnergy', '000000.bmp'),
+        'Image': ('gameoptions', 'WormEnergy', '000001.bmp'),
         'Grid Args': {
             'row': 0,
             'column': 0
@@ -378,8 +378,8 @@ OPTIONS = OrderedDict({
         'Type': 'bool',
         'Default': False,
         'Images': {
-            False: ('OptionsSpecial', 'gmoff.bmp'),
-            True:  ('OptionsSpecial', 'gmon.bmp')
+            False: ('Custom', 'UpgradedGrenadeOff.png'),
+            True:  ('Custom', 'UpgradedGrenadeOn.png')
         },
         'Grid Args': {
             'row': 1,
@@ -390,8 +390,8 @@ OPTIONS = OrderedDict({
         'Type': 'bool',
         'Default': False,
         'Images': {
-            False: ('OptionsSpecial', 'gmoff.bmp'),
-            True:  ('OptionsSpecial', 'gmon.bmp')
+            False: ('Custom', 'UpgradedShotgunOff.png'),
+            True:  ('Custom', 'UpgradedShotgunOn.png')
         },
         'Grid Args': {
             'row': 2,
@@ -402,8 +402,8 @@ OPTIONS = OrderedDict({
         'Type': 'bool',
         'Default': False,
         'Images': {
-            False: ('OptionsSpecial', 'gmoff.bmp'),
-            True:  ('OptionsSpecial', 'gmon.bmp')
+            False: ('Custom', 'UpgradedClusterOff.png'),
+            True:  ('Custom', 'UpgradedClusterOn.png')
         },
         'Grid Args': {
             'row': 2,
@@ -414,8 +414,8 @@ OPTIONS = OrderedDict({
         'Type': 'bool',
         'Default': False,
         'Images': {
-            False: ('OptionsSpecial', 'gmoff.bmp'),
-            True:  ('OptionsSpecial', 'gmon.bmp')
+            False: ('Custom', 'UpgradedLongbowOff.png'),
+            True:  ('Custom', 'UpgradedLongbowOn.png')
         },
         'Grid Args': {
             'row': 2,
@@ -448,7 +448,7 @@ OPTIONS = OrderedDict({
     }
 })
 
-items = list(OPTIONS.items()) 
+items = list(ALL_OPTIONS.items()) 
 
 MAIN_MENU_SLICE = items[1:9] + items[10:27]
 SPECIAL_MENU_SLICE = items[27:]
