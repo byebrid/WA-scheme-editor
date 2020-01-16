@@ -1,9 +1,9 @@
 """
 scheme_editor.py
 
-Notes
------
-...
+This script handles the GUI for the Worms Armageddon Scheme Editor, as well
+as the logic for saving and loading .wsc files from/into a more user-friendly
+format.
 """
 import os
 import pathlib
@@ -19,10 +19,9 @@ from options import ALL_OPTIONS, MAIN_MENU_OPTIONS, SPECIAL_MENU_OPTIONS, HIDDEN
 from weapons import WEAPONS, SUPER_WEAPONS
 
 if getattr(sys, 'frozen', False):
-    # If the application is run as a bundle, the pyInstaller bootloader
-    # extends the sys module by a flag frozen=True and sets the app 
-    # path into variable _MEIPASS'.
-    ROOT_DIR = pathlib.Path(sys.executable).parents[1] # Gets out of dist back into actual directory of this script
+    # If the application is run by pyinstaller bundle, we can get the parent 
+    # directory of this file with this below
+    ROOT_DIR = pathlib.Path(sys.executable).parents[1]
 else:
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -81,6 +80,9 @@ class IntVar(tk.IntVar):
 
     # Overriding default set value so we can restrict it
     def set(self, value):
+        """Restricts int to within range [0, 255] if unsigned, and [-128, 127]
+        if signed.
+        """
         value = int(value)
         if self.signed:
             if value < -128:
@@ -486,19 +488,17 @@ class Weapon(Option):
             )
             tk.Label(master=weapon_popup, text=text).grid(row=0, columnspan=2)
 
-            # Entries to change values and assoicated labels
-            tk.Label(master=weapon_popup, text='Ammo').grid(row=1)
-            weapon_popup.ammo_entry = tk.Entry(master=weapon_popup, textvariable=self.ammo)
-            weapon_popup.ammo_entry.grid(row=1, column=1)
-            tk.Label(master=weapon_popup, text='Delay').grid(row=2)
-            weapon_popup.delay_entry = tk.Entry(master=weapon_popup, textvariable=self.delay)
-            weapon_popup.delay_entry.grid(row=2, column=1)
-            tk.Label(master=weapon_popup, text='Power').grid(row=3)
-            weapon_popup.power_entry = tk.Entry(master=weapon_popup, textvariable=self.power)
-            weapon_popup.power_entry.grid(row=3, column=1)
-            tk.Label(master=weapon_popup, text='Crate probability').grid(row=4)
-            weapon_popup.crate_probability_entry = tk.Entry(master=weapon_popup, textvariable=self.crate_probability)
-            weapon_popup.crate_probability_entry.grid(row=4, column=1)
+            # Entries to change values and associated labels
+            # Generates weapon_popup.delay_entry, weapon_popup.crate_probability_entry, etc.
+            for i, (label, attribute) in enumerate(zip(
+                ('Ammo', 'Delay', 'Power', 'Crate Probability'),
+                ('ammo', 'delay', 'power', 'crate_probability'),
+            )):
+                row = i + 1
+                tk.Label(master=weapon_popup, text=label).grid(row=row, column=0)
+                entry = tk.Entry(master=weapon_popup, textvariable=getattr(self, attribute)) 
+                setattr(weapon_popup, attribute + '_entry', entry)
+                getattr(weapon_popup, attribute + '_entry').grid(row=row, column=1)
 
             # Setting focus to first entry
             weapon_popup.ammo_entry.focus_set()
@@ -595,6 +595,7 @@ class GUI(tk.Frame):
             elif name in HIDDEN_OPTIONS:
                 d = self.hidden_options
             
+            # option = make_option(master=self, name=name, option_dict=option_dict)
             # Determining what kind of Option this should be
             if option_dict['Type'] == 'bool':
                 option = BoolOption(master=self, name=name)
