@@ -426,8 +426,8 @@ ALL_OPTIONS = OrderedDict({
         'Type': 'bool',
         'Default': False,
         'Images': {
-            False: ('Custom', 'teamwepyes.bmp'),
-            True:  ('Custom', 'teamwepno2.bmp')
+            False: ('Custom', 'teamwepno2.bmp'),
+            True:  ('Custom', 'teamwepyes.bmp')
         },
         'Grid Args': {
             'row': 3,

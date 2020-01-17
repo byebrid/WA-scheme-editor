@@ -4,6 +4,14 @@ scheme_editor.py
 This script handles the GUI for the Worms Armageddon Scheme Editor, as well
 as the logic for saving and loading .wsc files from/into a more user-friendly
 format.
+
+The scheme format was determined from https://worms2d.info/Game_scheme_file.
+
+Note on unsigned bytes:
+I've zombified the logic pertaining to signed bytes as the table retrieved from
+the website above, which describes the type of each byte seemed to a bit off
+with what it was calling signed bytes. Treating them as unsigned bytes seems
+to have the desired results.
 """
 import os
 import pathlib
@@ -99,15 +107,17 @@ class IntVar(tk.IntVar):
     @property
     def encoded_value(self):
         if self.signed: 
-            magnitude = abs(self.get())
-            hex_str = '{value:02x}'.format(value=magnitude+128) # Converts to signed value (i.e. between 128-255 in hex)
+            # magnitude = abs(self.get())
+            # hex_str = '{value:02x}'.format(value=magnitude+128) # Converts to signed value (i.e. between 128-255 in hex)
+            hex_str = '{value:02x}'.format(value=self.get())
         else:
             hex_str = '{value:02x}'.format(value=self.get())
         return bytes.fromhex(hex_str)
 
     def decode(self, raw_byte):
         if self.signed:
-            return int.from_bytes(raw_byte, byteorder='little', signed=True)
+            # return int.from_bytes(raw_byte, byteorder='little', signed=True)
+            return int.from_bytes(raw_byte, byteorder='little')
         else:
             return int.from_bytes(raw_byte, byteorder='little')
 
@@ -539,20 +549,25 @@ class GUI(tk.Frame):
             button.image = image # Avoid garbage collect
             button['command'] = command
             button.grid(**grid_args)
+            return button
 
         # Button to access weapons_menu
-        create_menu_button(
+        weapons_btn = create_menu_button(
             imgpath=('optionsmenu', 'weaponoptions.bmp'),
             command=self.create_weapons_menu,
             grid_args={'row': 2, 'column': 4, 'columnspan': 2}
         )
+        weapons_btn.bind("<Enter>", lambda event: self.help_text.set("Open Weapons menu"))
+        weapons_btn.bind("<Leave>", lambda event: self.help_text.set(self.default_help_text))
 
         # Button to access special stuff
-        create_menu_button(
+        special_btn = create_menu_button(
             imgpath=('Custom', 'secretstar.bmp'),
             command=self.create_special_menu,
             grid_args={'row': 2, 'column': 6}
         )
+        special_btn.bind("<Enter>", lambda event: self.help_text.set("Open Special menu"))
+        special_btn.bind("<Leave>", lambda event: self.help_text.set(self.default_help_text))
 
         # To display help text
         self.help_text = tk.StringVar()
