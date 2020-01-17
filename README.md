@@ -33,7 +33,7 @@ If you've downloaded the game from steam, you can find the *Worms Aramageddon* f
 
 Limitations
 -----------
-Some options have quite unintuitive behaviours and I haven't yet bothered trying to account for this to make it easier on the user. I would suggest you read [Changing Options](Changing%20Options.md) to get a better idea of what numbers you should be putting in for desired results.
+Some options have quite unintuitive behaviours and I haven't yet bothered trying to account for this to make it easier on the user. I would suggest you read [Changing Options](docs/Changing%20Options.md) to get a better idea of what numbers you should be putting in for desired results.
 
 Developer Note on bundling
 --------------------------
