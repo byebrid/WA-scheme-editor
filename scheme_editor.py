@@ -7,6 +7,9 @@ format.
 
 The scheme format was determined from https://worms2d.info/Game_scheme_file.
 
+The default values for the options are decided by 'options.py' and 'weapons.py'
+but you can easily change the options by loading a scheme as a default.
+
 Note on unsigned bytes:
 I've zombified the logic pertaining to signed bytes as the table retrieved from
 the website above, which describes the type of each byte seemed to a bit off
